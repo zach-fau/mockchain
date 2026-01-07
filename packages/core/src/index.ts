@@ -9,6 +9,9 @@ export type {
   CheckpointOptions,
   BranchOptions,
   RequestMatcher,
+  ExportOptions,
+  ExportData,
+  ImportOptions,
 } from './types';
 
 // Store
@@ -19,6 +22,7 @@ export {
   createPersistentMockChainStore,
   getPersistentMockChainStore,
   resetPersistentMockChainStore,
+  EXPORT_VERSION,
   type MockChainStore,
   type PersistentMockChainStore,
   type PersistentStoreOptions,

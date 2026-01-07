@@ -111,3 +111,35 @@ export interface RequestMatcher {
   /** Custom matching function */
   match?: ((request: CapturedRequest) => boolean) | undefined;
 }
+
+/**
+ * Options for exporting state
+ */
+export interface ExportOptions {
+  /** Export specific timeline only (if omitted, exports all timelines) */
+  timeline?: string | undefined;
+}
+
+/**
+ * Exported data format
+ */
+export interface ExportData {
+  /** Version identifier for compatibility checking */
+  version: string;
+  /** ISO 8601 timestamp when export was created */
+  exportedAt: string;
+  /** Exported timelines */
+  timelines: Timeline[];
+  /** Exported checkpoints */
+  checkpoints: Checkpoint[];
+  /** Exported captured request/response pairs */
+  captures: CapturedPair[];
+}
+
+/**
+ * Options for importing state
+ */
+export interface ImportOptions {
+  /** Strategy for importing: 'merge' adds to existing, 'replace' clears first */
+  strategy: 'merge' | 'replace';
+}

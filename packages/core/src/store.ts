@@ -7,6 +7,9 @@ import type {
   CapturedPair,
   CheckpointOptions,
   BranchOptions,
+  ExportOptions,
+  ExportData,
+  ImportOptions,
 } from './types';
 import { generateId } from './utils';
 import {
@@ -21,6 +24,9 @@ import {
 } from './storage';
 
 const MAIN_TIMELINE_ID = 'main';
+
+/** Current export format version */
+export const EXPORT_VERSION = '1.0.0';
 
 function createInitialState(): MockChainState {
   const mainTimeline: Timeline = {
@@ -63,6 +69,10 @@ export interface MockChainStore {
   // State queries
   getCaptures: () => CapturedPair[];
   findCapture: (method: string, url: string) => CapturedPair | undefined;
+
+  // Export/Import
+  exportState: (options?: ExportOptions) => ExportData;
+  importState: (data: ExportData, options?: ImportOptions) => void;
 }
 
 /**
@@ -286,6 +296,134 @@ function createStoreActions(store: {
     return undefined;
   };
 
+  const exportState = (options?: ExportOptions): ExportData => {
+    const state = store.getState();
+
+    let timelines: Timeline[];
+    let checkpoints: Checkpoint[];
+    let captures: CapturedPair[];
+
+    if (options?.timeline) {
+      // Export specific timeline only
+      const timeline = state.timelines.get(options.timeline);
+      if (!timeline) {
+        throw new Error(`Timeline "${options.timeline}" not found`);
+      }
+      timelines = [timeline];
+      // Get checkpoints for this timeline only
+      checkpoints = Array.from(state.checkpoints.values()).filter(
+        (cp) => cp.timelineId === options.timeline
+      );
+      // If exporting current timeline, include current captures
+      captures = state.currentTimelineId === options.timeline ? [...state.currentCaptures] : [];
+    } else {
+      // Export all timelines
+      timelines = Array.from(state.timelines.values());
+      checkpoints = Array.from(state.checkpoints.values());
+      captures = [...state.currentCaptures];
+    }
+
+    return {
+      version: EXPORT_VERSION,
+      exportedAt: new Date().toISOString(),
+      timelines,
+      checkpoints,
+      captures,
+    };
+  };
+
+  const importState = (data: ExportData, options?: ImportOptions): void => {
+    // Validate export data structure
+    if (!data.version || typeof data.version !== 'string') {
+      throw new Error('Invalid export data: missing or invalid version');
+    }
+    if (!Array.isArray(data.timelines)) {
+      throw new Error('Invalid export data: timelines must be an array');
+    }
+    if (!Array.isArray(data.checkpoints)) {
+      throw new Error('Invalid export data: checkpoints must be an array');
+    }
+    if (!Array.isArray(data.captures)) {
+      throw new Error('Invalid export data: captures must be an array');
+    }
+
+    // Validate timelines
+    for (const timeline of data.timelines) {
+      if (!timeline.id || !timeline.name) {
+        throw new Error('Invalid export data: timeline missing required fields');
+      }
+    }
+
+    // Validate checkpoints
+    for (const checkpoint of data.checkpoints) {
+      if (!checkpoint.id || !checkpoint.name || !checkpoint.timelineId) {
+        throw new Error('Invalid export data: checkpoint missing required fields');
+      }
+    }
+
+    const strategy = options?.strategy ?? 'replace';
+    const state = store.getState();
+
+    if (strategy === 'replace') {
+      // Replace all state with imported data
+      const mainTimeline: Timeline = {
+        id: MAIN_TIMELINE_ID,
+        name: 'Main',
+        parentId: null,
+        branchedFromCheckpointId: null,
+        createdAt: Date.now(),
+      };
+
+      // Build new timelines map, ensuring main timeline exists
+      const newTimelines = new Map<string, Timeline>();
+      newTimelines.set(MAIN_TIMELINE_ID, mainTimeline);
+      for (const timeline of data.timelines) {
+        newTimelines.set(timeline.id, timeline);
+      }
+
+      // Build new checkpoints map
+      const newCheckpoints = new Map<string, Checkpoint>();
+      for (const checkpoint of data.checkpoints) {
+        newCheckpoints.set(checkpoint.id, checkpoint);
+      }
+
+      // Determine current timeline (use first imported timeline or main)
+      const currentTimelineId =
+        data.timelines.length > 0 && data.timelines[0] ? data.timelines[0].id : MAIN_TIMELINE_ID;
+
+      store.setState({
+        currentTimelineId,
+        timelines: newTimelines,
+        checkpoints: newCheckpoints,
+        currentCaptures: [...data.captures],
+      });
+    } else {
+      // Merge with existing state
+      const newTimelines = new Map(state.timelines);
+      for (const timeline of data.timelines) {
+        // Don't overwrite existing timelines with same ID
+        if (!newTimelines.has(timeline.id)) {
+          newTimelines.set(timeline.id, timeline);
+        }
+      }
+
+      const newCheckpoints = new Map(state.checkpoints);
+      for (const checkpoint of data.checkpoints) {
+        // Don't overwrite existing checkpoints with same ID
+        if (!newCheckpoints.has(checkpoint.id)) {
+          newCheckpoints.set(checkpoint.id, checkpoint);
+        }
+      }
+
+      store.setState({
+        ...state,
+        timelines: newTimelines,
+        checkpoints: newCheckpoints,
+        currentCaptures: [...state.currentCaptures, ...data.captures],
+      });
+    }
+  };
+
   return {
     capture,
     clearCaptures,
@@ -301,6 +439,8 @@ function createStoreActions(store: {
     listTimelines,
     getCaptures,
     findCapture,
+    exportState,
+    importState,
   };
 }
 

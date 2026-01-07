@@ -1,0 +1,31 @@
+{
+  "name": "react-demo",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mockchain/core": "workspace:*",
+    "@mockchain/devtools": "workspace:*",
+    "@mockchain/msw": "workspace:*",
+    "msw": "^2.7.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

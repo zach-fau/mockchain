@@ -1,0 +1,58 @@
+{
+  "name": "@mockchain/msw",
+  "version": "0.0.1",
+  "description": "MSW adapter for MockChain - adds stateful checkpoints and time-travel to MSW",
+  "keywords": [
+    "mock",
+    "msw",
+    "mock-service-worker",
+    "api",
+    "testing",
+    "checkpoint"
+  ],
+  "homepage": "https://github.com/zach-fau/mockchain#readme",
+  "bugs": {
+    "url": "https://github.com/zach-fau/mockchain/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zach-fau/mockchain.git",
+    "directory": "packages/msw-adapter"
+  },
+  "license": "MIT",
+  "author": "Zachary Woods",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "clean": "rm -rf dist",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mockchain/core": "workspace:*"
+  },
+  "devDependencies": {
+    "msw": "^2.7.0",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.4.0"
+  },
+  "peerDependencies": {
+    "msw": ">=2.0.0",
+    "typescript": ">=5.0.0"
+  }
+}

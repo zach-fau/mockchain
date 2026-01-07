@@ -1,0 +1,60 @@
+{
+  "name": "@mockchain/devtools",
+  "version": "0.0.1",
+  "description": "Browser DevTools panel for MockChain - visualize and manage checkpoints and timelines",
+  "keywords": [
+    "mock",
+    "devtools",
+    "debugging",
+    "timeline",
+    "visualization"
+  ],
+  "homepage": "https://github.com/zach-fau/mockchain#readme",
+  "bugs": {
+    "url": "https://github.com/zach-fau/mockchain/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zach-fau/mockchain.git",
+    "directory": "packages/devtools"
+  },
+  "license": "MIT",
+  "author": "Zachary Woods",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "clean": "rm -rf dist",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mockchain/core": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.4.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}

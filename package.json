@@ -1,0 +1,74 @@
+{
+  "name": "mockchain",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Time-travel debugging for API mocks - Stateful MSW extension with checkpoints, restore, and branching timelines",
+  "keywords": [
+    "mock",
+    "api",
+    "msw",
+    "testing",
+    "time-travel",
+    "checkpoint",
+    "state-management",
+    "developer-tools"
+  ],
+  "homepage": "https://github.com/zach-fau/mockchain#readme",
+  "bugs": {
+    "url": "https://github.com/zach-fau/mockchain/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zach-fau/mockchain.git"
+  },
+  "license": "MIT",
+  "author": "Zachary Woods",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "dev": "pnpm -r --parallel dev",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm -r --parallel test:watch",
+    "test:coverage": "pnpm -r test:coverage",
+    "typecheck": "pnpm -r typecheck",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.52.0",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}

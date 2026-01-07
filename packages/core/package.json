@@ -1,0 +1,56 @@
+{
+  "name": "@mockchain/core",
+  "version": "0.0.1",
+  "description": "Core checkpoint and timeline management for MockChain",
+  "keywords": [
+    "mock",
+    "api",
+    "checkpoint",
+    "state-management",
+    "time-travel"
+  ],
+  "homepage": "https://github.com/zach-fau/mockchain#readme",
+  "bugs": {
+    "url": "https://github.com/zach-fau/mockchain/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zach-fau/mockchain.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "author": "Zachary Woods",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "clean": "rm -rf dist",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "idb-keyval": "^6.2.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.4.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}

@@ -33,7 +33,9 @@ export function MockChainPanel({
     refresh();
     // Set up polling for state changes (zustand doesn't have built-in subscriptions in vanilla)
     const interval = setInterval(refresh, 500);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [refresh]);
 
   const handleCreateCheckpoint = useCallback(() => {
@@ -87,7 +89,9 @@ export function MockChainPanel({
     >
       {collapsed ? (
         <button
-          onClick={() => setCollapsed(false)}
+          onClick={() => {
+            setCollapsed(false);
+          }}
           style={{
             background: '#1a1a2e',
             color: '#eee',
@@ -140,7 +144,9 @@ export function MockChainPanel({
           >
             <span style={{ fontWeight: 600 }}>⛓️ MockChain</span>
             <button
-              onClick={() => setCollapsed(true)}
+              onClick={() => {
+                setCollapsed(true);
+              }}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -155,12 +161,16 @@ export function MockChainPanel({
 
           {/* Current Timeline */}
           <div style={{ padding: '8px 12px', borderBottom: '1px solid #333' }}>
-            <div style={{ marginBottom: 4, color: '#888', fontSize: 10, textTransform: 'uppercase' }}>
+            <div
+              style={{ marginBottom: 4, color: '#888', fontSize: 10, textTransform: 'uppercase' }}
+            >
               Current Timeline
             </div>
             <select
               value={currentTimelineId}
-              onChange={(e) => handleSwitchTimeline(e.target.value)}
+              onChange={(e) => {
+                handleSwitchTimeline(e.target.value);
+              }}
               style={{
                 width: '100%',
                 background: '#2a2a3e',
@@ -179,7 +189,9 @@ export function MockChainPanel({
           </div>
 
           {/* Actions */}
-          <div style={{ padding: '8px 12px', borderBottom: '1px solid #333', display: 'flex', gap: 8 }}>
+          <div
+            style={{ padding: '8px 12px', borderBottom: '1px solid #333', display: 'flex', gap: 8 }}
+          >
             <button
               onClick={handleCreateCheckpoint}
               style={{
@@ -214,7 +226,9 @@ export function MockChainPanel({
 
           {/* Checkpoints List */}
           <div style={{ flex: 1, overflow: 'auto', padding: '8px 12px' }}>
-            <div style={{ marginBottom: 4, color: '#888', fontSize: 10, textTransform: 'uppercase' }}>
+            <div
+              style={{ marginBottom: 4, color: '#888', fontSize: 10, textTransform: 'uppercase' }}
+            >
               Checkpoints ({checkpoints.length})
             </div>
             {checkpoints.length === 0 ? (
@@ -238,11 +252,14 @@ export function MockChainPanel({
                     <div>
                       <div style={{ fontWeight: 500 }}>{cp.name}</div>
                       <div style={{ fontSize: 10, color: '#888' }}>
-                        {cp.captures.length} captures • {new Date(cp.createdAt).toLocaleTimeString()}
+                        {cp.captures.length} captures •{' '}
+                        {new Date(cp.createdAt).toLocaleTimeString()}
                       </div>
                     </div>
                     <button
-                      onClick={() => handleRestoreCheckpoint(cp.id)}
+                      onClick={() => {
+                        handleRestoreCheckpoint(cp.id);
+                      }}
                       style={{
                         background: '#facc15',
                         color: '#000',

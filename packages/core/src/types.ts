@@ -47,7 +47,7 @@ export interface Checkpoint {
   /** Timestamp when checkpoint was created */
   createdAt: number;
   /** Optional description */
-  description?: string;
+  description?: string | undefined;
 }
 
 /**
@@ -87,7 +87,7 @@ export interface CheckpointOptions {
   /** Name for the checkpoint */
   name: string;
   /** Optional description */
-  description?: string;
+  description?: string | undefined;
 }
 
 /**
@@ -97,7 +97,7 @@ export interface BranchOptions {
   /** Name for the new timeline */
   name: string;
   /** Checkpoint to branch from (defaults to current state) */
-  fromCheckpointId?: string;
+  fromCheckpointId?: string | undefined;
 }
 
 /**
@@ -105,9 +105,9 @@ export interface BranchOptions {
  */
 export interface RequestMatcher {
   /** Match by HTTP method */
-  method?: string;
+  method?: string | undefined;
   /** Match by URL pattern (string or RegExp) */
-  url?: string | RegExp;
+  url?: string | RegExp | undefined;
   /** Custom matching function */
-  match?: (request: CapturedRequest) => boolean;
+  match?: ((request: CapturedRequest) => boolean) | undefined;
 }

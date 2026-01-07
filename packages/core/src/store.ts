@@ -1,4 +1,5 @@
 import { createStore } from 'zustand/vanilla';
+import { persist, type StateStorage, type StorageValue } from 'zustand/middleware';
 import type {
   MockChainState,
   Timeline,
@@ -8,6 +9,16 @@ import type {
   BranchOptions,
 } from './types';
 import { generateId } from './utils';
+import {
+  serializeState,
+  deserializeState,
+  createIndexedDBStorage,
+  createMemoryStorage,
+  isIndexedDBAvailable,
+  STORAGE_KEY,
+  type IndexedDBStorageOptions,
+  type SerializedMockChainState,
+} from './storage';
 
 const MAIN_TIMELINE_ID = 'main';
 
@@ -54,9 +65,35 @@ export interface MockChainStore {
   findCapture: (method: string, url: string) => CapturedPair | undefined;
 }
 
-export function createMockChainStore(): MockChainStore {
-  const store = createStore<MockChainState>()(() => createInitialState());
+/**
+ * Extended store interface with persistence methods
+ */
+export interface PersistentMockChainStore extends MockChainStore {
+  /** Clear all persisted state from storage */
+  clearPersistedState: () => Promise<void>;
+  /** Check if the store has been hydrated from storage */
+  isHydrated: () => boolean;
+  /** Wait for hydration to complete */
+  waitForHydration: () => Promise<void>;
+}
 
+/**
+ * Options for creating a persistent store
+ */
+export interface PersistentStoreOptions extends IndexedDBStorageOptions {
+  /** Custom storage implementation (defaults to IndexedDB with memory fallback) */
+  storage?: StateStorage;
+  /** Storage key name (default: 'mockchain-state') */
+  storageKey?: string;
+}
+
+/**
+ * Create store actions that work with any Zustand store
+ */
+function createStoreActions(store: {
+  getState: () => MockChainState;
+  setState: (state: MockChainState | ((state: MockChainState) => MockChainState)) => void;
+}) {
   const capture = (pair: CapturedPair): void => {
     store.setState((state) => ({
       ...state,
@@ -215,7 +252,8 @@ export function createMockChainStore(): MockChainStore {
       timelines: newTimelines,
       checkpoints: newCheckpoints,
       currentTimelineId: newCurrentTimelineId,
-      currentCaptures: newCurrentTimelineId !== state.currentTimelineId ? [] : state.currentCaptures,
+      currentCaptures:
+        newCurrentTimelineId !== state.currentTimelineId ? [] : state.currentCaptures,
     });
   };
 
@@ -249,9 +287,6 @@ export function createMockChainStore(): MockChainStore {
   };
 
   return {
-    get state() {
-      return store.getState();
-    },
     capture,
     clearCaptures,
     createCheckpoint,
@@ -269,6 +304,122 @@ export function createMockChainStore(): MockChainStore {
   };
 }
 
+/**
+ * Create a non-persistent MockChain store (in-memory only)
+ */
+export function createMockChainStore(): MockChainStore {
+  const store = createStore<MockChainState>()(() => createInitialState());
+
+  const actions = createStoreActions(store);
+
+  return {
+    get state() {
+      return store.getState();
+    },
+    ...actions,
+  };
+}
+
+/**
+ * Create a persistent MockChain store with IndexedDB storage
+ *
+ * @example
+ * ```ts
+ * // Basic usage - persists to IndexedDB automatically
+ * const store = createPersistentMockChainStore();
+ *
+ * // Wait for hydration before using
+ * await store.waitForHydration();
+ *
+ * // Use store as normal
+ * store.createCheckpoint({ name: 'My Checkpoint' });
+ *
+ * // Clear all persisted data
+ * await store.clearPersistedState();
+ * ```
+ */
+export function createPersistentMockChainStore(
+  options: PersistentStoreOptions = {}
+): PersistentMockChainStore {
+  const { storage, storageKey = STORAGE_KEY, ...indexedDBOptions } = options;
+
+  // Determine which storage to use
+  const storageAdapter: StateStorage =
+    storage ??
+    (isIndexedDBAvailable() ? createIndexedDBStorage(indexedDBOptions) : createMemoryStorage());
+
+  // Track hydration state
+  let hydrated = false;
+  let hydrationResolve: (() => void) | null = null;
+  const hydrationPromise = new Promise<void>((resolve) => {
+    hydrationResolve = resolve;
+  });
+
+  // Create the persisted store
+  const store = createStore<MockChainState>()(
+    persist(() => createInitialState(), {
+      name: storageKey,
+      storage: {
+        getItem: async (name: string): Promise<StorageValue<MockChainState> | null> => {
+          const value = await storageAdapter.getItem(name);
+          if (!value) return null;
+
+          try {
+            const parsed = JSON.parse(value) as StorageValue<SerializedMockChainState>;
+            // Deserialize the state (convert arrays back to Maps)
+            return {
+              ...parsed,
+              state: deserializeState(parsed.state),
+            };
+          } catch (error) {
+            console.warn('[MockChain] Failed to parse persisted state:', error);
+            return null;
+          }
+        },
+        setItem: async (name: string, value: StorageValue<MockChainState>): Promise<void> => {
+          // Serialize the state (convert Maps to arrays for JSON)
+          const serialized: StorageValue<SerializedMockChainState> = {
+            ...value,
+            state: serializeState(value.state),
+          };
+          await storageAdapter.setItem(name, JSON.stringify(serialized));
+        },
+        removeItem: async (name: string): Promise<void> => {
+          await storageAdapter.removeItem(name);
+        },
+      },
+      onRehydrateStorage: () => {
+        return () => {
+          hydrated = true;
+          hydrationResolve?.();
+        };
+      },
+    })
+  );
+
+  const actions = createStoreActions(store);
+
+  const clearPersistedState = async (): Promise<void> => {
+    await storageAdapter.removeItem(storageKey);
+    // Reset to initial state
+    store.setState(createInitialState());
+  };
+
+  const isHydrated = (): boolean => hydrated;
+
+  const waitForHydration = (): Promise<void> => hydrationPromise;
+
+  return {
+    get state() {
+      return store.getState();
+    },
+    ...actions,
+    clearPersistedState,
+    isHydrated,
+    waitForHydration,
+  };
+}
+
 // Default singleton instance
 let defaultStore: MockChainStore | null = null;
 
@@ -279,4 +430,24 @@ export function getMockChainStore(): MockChainStore {
 
 export function resetMockChainStore(): void {
   defaultStore = null;
+}
+
+// Persistent singleton instance
+let defaultPersistentStore: PersistentMockChainStore | null = null;
+
+/**
+ * Get or create the default persistent singleton store
+ */
+export function getPersistentMockChainStore(
+  options?: PersistentStoreOptions
+): PersistentMockChainStore {
+  defaultPersistentStore ??= createPersistentMockChainStore(options);
+  return defaultPersistentStore;
+}
+
+/**
+ * Reset the persistent singleton store
+ */
+export function resetPersistentMockChainStore(): void {
+  defaultPersistentStore = null;
 }

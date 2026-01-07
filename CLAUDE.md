@@ -28,7 +28,7 @@ mockchain/
 
 ## Current State
 
-**Lint**: ✅ Passes | **Build**: ✅ Passes | **Tests**: Not yet written
+**Lint**: ✅ Passes | **Build**: ✅ Passes | **Tests**: ✅ @mockchain/core tested
 
 ### What's Done
 
@@ -36,17 +36,28 @@ mockchain/
 - Core types and store implementation (Zustand)
 - MSW wrapper with auto-capture
 - DevTools panel component (React)
-- Documentation (README, ARCHITECTURE, CONTRIBUTING)
+- Unit tests for @mockchain/core (Issue #2)
+- Professional README with API docs (Issue #8 - GIFs deferred until demo app exists)
 
 ### What's Next
 
-**Check GitHub Issues** for current tasks:
+**Priority: Issue #5 - Example React App** (blocks GIF demos and integration testing)
+
+Check GitHub Issues for current tasks:
 
 ```bash
 gh issue list --repo zach-fau/mockchain
 ```
 
-If no open issues, reference `docs/PRD.md` Week 1-3 breakdown to create them.
+### Issue #5 Implementation Notes
+
+See the comment on Issue #5 for full details. Key points:
+
+- Create `examples/react-demo/` with Vite + React + TypeScript
+- Use `workspace:*` for @mockchain/\* dependencies
+- Mock a simple cart API (GET/POST/DELETE)
+- Integrate MockChain + DevTools panel
+- Demo flow: add items → checkpoint → clear → restore
 
 ## Commands
 
